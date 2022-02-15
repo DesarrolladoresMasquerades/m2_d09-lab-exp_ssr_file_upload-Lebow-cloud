@@ -1,18 +1,23 @@
 <div id="form">
   <h2>Signup</h2>
-  <form action="/signup" method="POST">
+  <form action="/auth/signup" method="POST" enctype="multipart/form-data">
 
     <label> Username
       <input type="text" name="username" placeholder="ironhacker" />
     </label>
 
     <label> Email
-      <input type="email" name="email" placeholder="rockstar@ironhack.com" />
+      <input type="text" name="email" placeholder="rockstar@ironhack.com" />
     </label>
 
     <label> Password
       <input type="password" name="password" placeholder="********" />
     </label>
+
+    
+<label for="imageUrl">Upload new file:</label>
+<input type="file" name="imageUrl">
+
 
     <button type="submit">Create account</button>
 
