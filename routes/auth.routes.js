@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const mongoose = require("mongoose");
+const fileUploader= require("../config/cloudinary.config")
 
 // ℹ️ Handles password encryption
 const bcryptjs = require("bcryptjs");
@@ -21,8 +22,9 @@ const { isLoggedIn, isLoggedOut } = require("../middleware/route-guard.js");
 router.get("/signup", isLoggedOut, (req, res) => res.render("auth/signup"));
 
 // .post() route ==> to process form data
-router.post("/signup", isLoggedOut, (req, res, next) => {
+router.post("/signup", isLoggedOut,fileUploader.single("imageUrl"), (req, res, next) => {
   const { username, email, password } = req.body;
+  const imageUrl = req.file.path
 
   if (!username || !email || !password) {
     res.render("auth/signup", {
@@ -30,6 +32,26 @@ router.post("/signup", isLoggedOut, (req, res, next) => {
     });
     return;
   }
+
+
+
+/*
+
+////////////////////////
+.post( fileUploader.single("imageUrl"),(req,res)=>{
+  const id = req.session.user._id
+  const imageUrl = req.file.path
+  User.findByIdAndUpdate(id, {imageUrl},{new: true})
+  .then((user)=>{
+    res.render("users/user-profile", {user: user})
+  })
+  })
+  ///////////////////////////
+
+
+
+
+
 
   // make sure passwords are strong:
   const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
@@ -40,7 +62,7 @@ router.post("/signup", isLoggedOut, (req, res, next) => {
     });
     return;
   }
-
+*/
   bcryptjs
     .genSalt(saltRounds)
     .then((salt) => bcryptjs.hash(password, salt))
@@ -55,9 +77,13 @@ router.post("/signup", isLoggedOut, (req, res, next) => {
       });
     })
     .then((userFromDB) => {
+
+      User.findByIdAndUpdate(userFromDB._id, {imageUrl},{new: true})
+      .then((user)=>{
+      //  res.render("users/user-profile", {user: user})
       // console.log("Newly created user is: ", userFromDB);
-      res.redirect("/user-profile");
-    })
+      res.redirect("/auth/user-profile");
+    })})
     .catch((error) => {
       if (error instanceof mongoose.Error.ValidationError) {
         res.status(500).render("auth/signup", { errorMessage: error.message });
@@ -96,7 +122,8 @@ router.post("/login", isLoggedOut, (req, res, next) => {
         return;
       } else if (bcryptjs.compareSync(password, user.passwordHash)) {
         req.session.user = user;
-        res.redirect("/user-profile");
+        console.log("before redirect",req.session.user )
+        res.redirect("/auth/user-profile");
       } else {
         res.render("auth/login", { errorMessage: "Incorrect password." });
       }
@@ -108,7 +135,7 @@ router.post("/login", isLoggedOut, (req, res, next) => {
 ///////////////////////////// LOGOUT ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-router.post("/logout", isLoggedIn, (req, res) => {
+router.post("/logout",isLoggedIn,(req, res) => {
   req.session.destroy();
   res.redirect("/");
 });
@@ -116,5 +143,18 @@ router.post("/logout", isLoggedIn, (req, res) => {
 router.get("/user-profile", isLoggedIn, (req, res) => {
   res.render("users/user-profile");
 });
+
+router.route("/edit", )
+.get((req, res) => {
+  res.render("users/profile-edit");
+})
+.post( fileUploader.single("imageUrl"),(req,res)=>{
+const id = req.session.user._id
+const imageUrl = req.file.path
+User.findByIdAndUpdate(id, {imageUrl},{new: true})
+.then((user)=>{
+  res.render("users/user-profile", {user: user})
+})
+})
 
 module.exports = router;
