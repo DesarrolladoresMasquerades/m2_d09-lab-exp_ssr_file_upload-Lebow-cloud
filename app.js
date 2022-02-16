@@ -32,7 +32,8 @@ app.use('/', (req, res, next) => {
 // 👇 Start handling routes here
 const authRoutes = require('./routes/auth.routes');
 app.use('/auth', authRoutes);
-
+const postRoutes = require("./routes/post.routes")
+app.use("/post", postRoutes);
 
 const index = require('./routes/index');
 app.use('/', index);
